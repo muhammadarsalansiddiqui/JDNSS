@@ -1,8 +1,8 @@
 package edu.msudenver.cs.jdnss;
 
 import org.junit.Assert;
-import org.junit.Test;
 import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.text.ParseException;
@@ -18,7 +18,7 @@ public class RRsTest
 
     @Test
     public void rrsTest1() {
-        byte one[] =
+        final byte one[] =
         {
             0x03, 'w', 'w', 'w',
             0x04, 't', 'e', 's', 't',
@@ -27,17 +27,17 @@ public class RRsTest
             0x00, 0x01, 0x00, 0x00
         };
 
-        RRs rrs1 = new RRs(one, 1, 0, 0, 0);
+        final RRs rrs1 = new RRs(one, 1, 0, 0, 0);
 
-        String expectedRRs1 = "Questions:\n" +
-            "name = www.test.com, type = A, TTL = 0";
+        final String expectedRRs = "Questions:\n" +
+                "RR(name=www.test.com, type=A, rrclass=1, ttl=0)";
 
-        Assert.assertEquals(rrs1.toString(), expectedRRs1);
+        Assert.assertEquals(expectedRRs, rrs1.toString());
     }
 
     @Test
     public void rrsTest2() {
-        byte two[] =
+        final byte two[] =
         {
             0x03, 'w', 'w', 'w',
             0x04, 't', 'e', 's', 't',
@@ -49,13 +49,14 @@ public class RRsTest
             0x00, 0x01, 0x00, 0x00
         };
 
-        RRs rrs2 = new RRs(two, 2, 0, 0, 0);
+        final RRs rrs2 = new RRs(two, 2, 0, 0, 0);
 
-        String expectedRRs2 = "Questions:\n" +
-            "name = www.test.com, type = A, TTL = 0\n" +
-            "name = mail.test.com, type = A, TTL = 0";
 
-        Assert.assertEquals(rrs2.toString(), expectedRRs2);
+        final String expectedRRs2 = "Questions:\n" +
+                "RR(name=www.test.com, type=A, rrclass=1, ttl=0)\n" +
+                "RR(name=mail.test.com, type=A, rrclass=1, ttl=0)";
+
+        Assert.assertEquals(expectedRRs2, rrs2.toString());
     }
 
     // The two following check for bad names.
