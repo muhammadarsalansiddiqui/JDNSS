@@ -542,7 +542,7 @@ class Utils {
         int length = buffer[current++] & 0x3f;
 
         if (length == 0) {
-            Vector<Object> StringAndNumber = new Vector<Object>();
+            Vector<Object> StringAndNumber = new Vector<>();
             StringAndNumber.add("");
             StringAndNumber.add(1);
             return StringAndNumber;
@@ -580,7 +580,7 @@ class Utils {
             }
         }
 
-        Vector<Object> StringAndNumber = new Vector<Object>();
+        Vector<Object> StringAndNumber = new Vector<>();
         StringAndNumber.add(name);
         StringAndNumber.add(current);
 
