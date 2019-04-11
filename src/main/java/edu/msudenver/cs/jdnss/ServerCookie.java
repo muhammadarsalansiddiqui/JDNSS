@@ -3,12 +3,12 @@ package edu.msudenver.cs.jdnss;
 
 import org.apache.logging.log4j.Logger;
 
-public class ServerCookie {
+class ServerCookie {
 
 
-      final static Logger logger = JDNSS.logger;
+    private final static Logger logger = JDNSS.logger;
       final private String serverSecret = JDNSS.jargs.getServerSecret();
-      private long hash;
+    private final long hash;
 
     ServerCookie(byte[] clientCookie, String clientIP){
         FNV1a64 fnv = new FNV1a64();
@@ -19,13 +19,13 @@ public class ServerCookie {
     }
 
     //check server cookie based on a client cookie and IP Address
-    protected boolean isValid(byte[] clientCookie, String clientIP){
+    boolean isValid(byte[] clientCookie, String clientIP) {
         FNV1a64 fnv = new FNV1a64();
         fnv.init(new String(clientCookie) + clientIP + serverSecret);
         return this.hash == fnv.getHash();
     }
 
-    protected byte[] getBytes(){
+    byte[] getBytes() {
       return Utils.getBytes(this.hash);
     }
 
