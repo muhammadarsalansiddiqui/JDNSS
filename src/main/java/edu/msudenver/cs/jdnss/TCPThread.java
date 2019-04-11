@@ -1,103 +1,88 @@
 package edu.msudenver.cs.jdnss;
 
-import java.net.*;
-import java.io.*;
-
 import org.apache.logging.log4j.Logger;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
 
 class TCPThread implements Runnable {
     private final Socket socket;
     private final Logger logger = JDNSS.logger;
+    private InputStream is;
+    private OutputStream os;
 
     /**
      * @param socket the socket to talk to
      */
-    public TCPThread(Socket socket) {
+    TCPThread(final Socket socket) {
         this.socket = socket;
     }
 
-    public void run() {
-        logger.traceEntry();
+    private void openStreams() throws IOException {
+        is = socket.getInputStream();
+        os = socket.getOutputStream();
+    }
 
-        InputStream is;
-        OutputStream os;
-
-        try {
-            is = socket.getInputStream();
-        } catch (IOException ioe) {
-            logger.catching(ioe);
-            return;
-        }
-
-        try {
-            os = socket.getOutputStream();
-        } catch (IOException ioe) {
-            logger.catching(ioe);
-            return;
-        }
-
-        // in TCP, the first two bytes signify the length of the request
-        byte buffer[] = new byte[2];
-
-        try {
-            Assertion.aver(is.read(buffer, 0, 2) == 2);
-        } catch (IOException ioe) {
-            logger.catching(ioe);
-            return;
-        }
-
-        byte query[] = new byte[Utils.addThem(buffer[0], buffer[1])];
-
-        try {
-            Assertion.aver(is.read(query) == query.length);
-        } catch (IOException ioe) {
-            logger.catching(ioe);
-            return;
-        }
-
-        Query q = new Query(query);
-        q.parseQueries(socket.getInetAddress().toString());
-
-        Response r = new Response(q, false);
-        byte b[] = r.getBytes();
-
-        int count = b.length;
-        buffer[0] = Utils.getByte(count, 2);
-        buffer[1] = Utils.getByte(count, 1);
-
-        try {
-            os.write(Utils.combine(buffer, b));
-        } catch (IOException ioe) {
-            logger.catching(ioe);
-            return;
-        }
-
+    private void closeStreams() {
+        // two tries on the off chance os can be open when is is not
         try {
             is.close();
-        } catch (IOException ioe) {
-            logger.catching(ioe);
-            return;
+        } catch (NullPointerException | IOException e) {
+            logger.catching(e);
         }
 
         try {
             os.close();
-        } catch (IOException ioe) {
-            logger.catching(ioe);
-            return;
+        } catch (NullPointerException | IOException e) {
+            logger.catching(e);
         }
 
         try {
             socket.close();
         } catch (IOException ioe) {
             logger.catching(ioe);
-            return;
         }
-        // }
-        /*
-        catch (Throwable t)
-        {
-            logger.catching(t);
+    }
+
+    private int getLength() throws IOException {
+        // in TCP, the first two bytes signify the length of the request
+        final byte[] buffer = new byte[2];
+
+        try {
+            Assertion.aver(is.read(buffer, 0, 2) == 2);
+        } catch (IOException ioe) {
+            logger.catching(ioe);
+            throw ioe;
         }
-        */
+
+        return Utils.addThem(buffer[0], buffer[1]);
+    }
+
+    public void run() {
+        logger.traceEntry();
+
+        try {
+            final byte[] query = new byte[getLength()];
+            Assertion.aver(is.read(query) == query.length);
+
+            final Query q = new Query(query);
+            q.parseQueries(socket.getInetAddress().toString());
+
+            final Response r = new Response(q, false);
+            final byte[] b = r.getBytes();
+
+            final int count = b.length;
+            final byte[] buffer = new byte[2];
+            buffer[0] = Utils.getByte(count, 2);
+            buffer[1] = Utils.getByte(count, 1);
+
+            os.write(Utils.combine(buffer, b));
+        } catch (IOException ioe) {
+            logger.catching(ioe);
+        } finally {
+            closeStreams();
+        }
     }
 }
