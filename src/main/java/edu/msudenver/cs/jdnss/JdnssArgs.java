@@ -27,6 +27,8 @@ class jdnssArgs {
     @Getter
     private String IPaddress;
     @Getter
+    private String PKCS12;
+    @Getter
     private int backlog = 4;
     @Getter
     private JDNSSLogLevels logLevel = JDNSSLogLevels.OFF;
